@@ -1,0 +1,9 @@
+# Ignore everything in this directory
+*
+get_tt_factor.py
+# Except this file
+!readme.md
+!.gitignore
+!*.ipynb
+!merging.py
+!process.py

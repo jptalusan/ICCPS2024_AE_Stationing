@@ -1,0 +1,10 @@
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
+!readme.md
+!TEST
+!TEST/*.py
+!TEST/*.sh
+!TEST/configs
+!TEST/logs

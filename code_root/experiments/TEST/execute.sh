@@ -1,0 +1,11 @@
+python run_mcts_no_inject.py -c configs/20210928_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &
+python run_mcts_no_inject.py -c configs/20210901_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &
+python run_mcts_no_inject.py -c configs/20210829_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &
+python run_mcts_no_inject.py -c configs/20210826_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &
+python run_mcts_no_inject.py -c configs/20210725_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &
+wait
+python run_mcts_no_inject.py -c configs/20210624_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &
+python run_mcts_no_inject.py -c configs/20210606_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &
+python run_mcts_no_inject.py -c configs/20210425_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &
+python run_mcts_no_inject.py -c configs/20210401_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &
+python run_mcts_no_inject.py -c configs/20210312_200IT_20C_3600RO_REAL_WORLD_TEST_WORLD_0_NOISE_MCTS &

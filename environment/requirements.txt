@@ -1,0 +1,17 @@
+pyspark==3.3.1
+numpy==1.23.5
+pandas==1.5.2
+fastlogging
+pybind11
+osmnx
+networkx
+shapely
+gtfs_kit
+seaborn
+tqdm
+plotly
+dateparser
+geopandas
+pyarrow
+fastparquet
+python-dotenv==1.0.0
