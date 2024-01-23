@@ -19,6 +19,7 @@ from Environment.enums import BusStatus, BusType, EventType, MCTSType, LogType
 from Environment.EnvironmentModelFast import EnvironmentModelFast
 from Environment.Simulator import Simulator
 from src.utils import *
+from src.deconstruct_results import *
 import copy
 import time
 import logging
@@ -207,7 +208,9 @@ def load_passengers_events(Stops, active_stops, config, active_trips=[]):
             print(f"Using initial chain from {REALWORLD_DIR}.")
         else:
             if noise_label:
-                MCTSWORLD_DIR = f'{BASE_DIR}/scenarios/{config["mcts_world_dir"]}/{starting_date_str}_noise_{noise_label}'
+                MCTSWORLD_DIR = (
+                    f'{BASE_DIR}/scenarios/{config["mcts_world_dir"]}/{starting_date_str}_noise_{noise_label}'
+                )
             else:
                 MCTSWORLD_DIR = f'{BASE_DIR}/scenarios/{config["mcts_world_dir"]}/{starting_date_str}'
             df = pd.read_parquet(f"{MCTSWORLD_DIR}/chains/ons_offs_dict_chain_{starting_date_str}_{c - 1}.parquet")
@@ -476,10 +479,16 @@ if __name__ == "__main__":
         logger.addHandler(streamHandler)
 
     logger.debug("Starting process.")
-    
+
     # config["pool_thread_count"] = 0
     config["save_debug_log"] = True
     run_simulation(config)
 
     if config.get("send_mail", False):
         emailer(config_path)
+
+    stops_df, bus_df = logs_to_df(res_file)
+    stops_df.to_csv(f"{exp_res_path}/stops_results.csv")
+    bus_df.to_csv(f"{exp_res_path}/buses_results.csv")
+
+    logger.debug("Finished experiment")

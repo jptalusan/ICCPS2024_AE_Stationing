@@ -364,4 +364,9 @@ code_root/scenarios/common/*
 code_root/scenarios/DISRUPTION_CHAINS/*
 code_root/scenarios/DISRUPTION_MODEL_ENV/*
 code_root/scenarios/REALWORLD_ENV/*
+code_root/scenarios/REAL_WORLD/*
+code_root/scenarios/TEST_WORLD/*
+ARTIFACT/
+ARTIFACT_FILES.tar.gz
+.DS_STORE
 .env
