@@ -38,6 +38,7 @@ Machine used for testing:
     docker build -t iccps2024_stationing .
     docker run -v $PWD/code_root:/usr/src/app/code_root iccps2024_stationing
     ```
+* Note: If running using Docker Desktop on a Mac, you might need to allow file sharing on the current git repo directory.
 2. Verify the results:
     ```
     less -S code_root/experiments/TEST/logs/20210211_test/stream.log
@@ -46,7 +47,7 @@ Machine used for testing:
     less -S code_root/experiments/TEST/results/20210211_test/buses_results.csv
     ```
     Note the datetime in the results are in UTC time. The first one contains the raw logs detailing the bus movement and passenger pickups and dropoffs. The second one is a summary containing 3 distinct CSVs and a summary of the results at the bottom.
-    
+
 
 
 ## Extra Information
