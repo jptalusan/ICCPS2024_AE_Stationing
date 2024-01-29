@@ -370,3 +370,4 @@ ARTIFACT/
 ARTIFACT_FILES.tar.gz
 .DS_STORE
 .env
+test.ipynb

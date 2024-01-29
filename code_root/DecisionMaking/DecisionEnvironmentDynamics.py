@@ -51,7 +51,7 @@ class DecisionEnvironmentDynamics(EnvironmentModelFast):
             _valid_actions = self.get_valid_allocations(state)
             valid_actions.extend(_valid_actions)
 
-        passenger_time_to_leave = self.config.get("passenger_time_to_leave_min", 30)
+        PASSENGER_TIME_TO_LEAVE = self.config.get("passenger_time_to_leave_min", 30)
 
         if action_type == ActionType.OVERLOAD_DISPATCH or action_type == ActionType.OVERLOAD_ALL:
             if (

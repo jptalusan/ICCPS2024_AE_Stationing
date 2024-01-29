@@ -126,17 +126,19 @@ def send_email(subject, message):
         smtpobj.quit()
         print("mail send - Using simple text message")
     except Exception as e:
+        print(f"Sending mail error: {e}")
         print("Provide email address and password in .env file at git root to send results via email.")
-        
 
-def emailer(config_path):
+
+def emailer(config_path=None, config_dict=None, msg_content=""):
     # Create the container email message.
     msg = EmailMessage()
     msg["Subject"] = "MCTS Stationing finished"
     me = EMAIL_ADDRESS
     recipients = [EMAIL_ADDRESS]
     msg["From"] = me
-    
+    msg.set_content(msg_content)
+
     try:
         msg["To"] = ", ".join(recipients)
         msg.preamble = "You will not see this in a MIME-aware mail reader.\n"
@@ -147,16 +149,36 @@ def emailer(config_path):
         now = datetime.now()
         log_name = now.strftime("%Y-%m-%d")
 
-        with open(config_path) as f:
-            config = json.load(f)
+        if config_path and not config_dict:
+            with open(config_path) as f:
+                config = json.load(f)
+        elif config_dict and not config_path:
+            config = config_dict
+            pass
+        else:
+            raise Exception("Config path or config dict must be provided.")
 
         output_tar_file = f"{config['mcts_log_name']}.tar.gz"
 
-        log_path = f"./results/{config['starting_date_str']}_{config['mcts_log_name']}/results.csv"
+        res_dir = f"./results/{config['mcts_log_name']}"
+        log_path = f"{res_dir}/results.csv"
 
         with tarfile.open(output_tar_file, "w:gz") as tar:
             tar.add(log_path, arcname=os.path.basename(log_path))
-            tar.add(config_path, arcname=os.path.basename(config_path))
+
+            if config_path and not config_dict:
+                tar.add(config_path, arcname=os.path.basename(config_path))
+            elif config_dict and not config_path:
+                # Specify the file path where you want to save the JSON file
+                file_path = f"{res_dir}/config.json"
+
+                # Write the dictionary to the JSON file
+                with open(file_path, "w") as json_file:
+                    json.dump(config_dict, json_file)
+
+                tar.add(file_path, arcname=os.path.basename(file_path))
+            else:
+                raise Exception("Config path or config dict must be provided.")
 
         for file in [output_tar_file]:
             filename = os.path.basename(os.path.normpath(file))
@@ -170,5 +192,6 @@ def emailer(config_path):
             s.send_message(msg)
             s.quit()
     except Exception as e:
+        print(f"Sending mail error: {e}")
         print("Provide email address and password in .env file at git root to send results via email.")
         pass
