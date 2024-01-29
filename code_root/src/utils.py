@@ -2,6 +2,7 @@ import argparse
 import datetime as dt
 import os
 import sys
+from pathlib import Path
 
 if "data_generation" in os.getcwd():
     sys.path.insert(1, "../code_root")
@@ -158,7 +159,9 @@ def emailer(config_path=None, config_dict=None, msg_content=""):
         else:
             raise Exception("Config path or config dict must be provided.")
 
-        output_tar_file = f"{config['mcts_log_name']}.tar.gz"
+        Path("./zips").mkdir(parents=True, exist_ok=True)
+
+        output_tar_file = f"./zips/{config['mcts_log_name']}.tar.gz"
 
         res_dir = f"./results/{config['mcts_log_name']}"
         log_path = f"{res_dir}/results.csv"

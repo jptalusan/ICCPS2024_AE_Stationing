@@ -546,10 +546,10 @@ if __name__ == "__main__":
     logger.addHandler(logging.StreamHandler())
 
     # Params
-    run_execute = False
-    date_list = ["20210211"]
+    run_execute = True
+    date_list = ["20201023", "20210211", "20200505"]
     method_list = ["baseline"]  # ["baseline", "mcts"]
-    overload_start_depots_option = ["garage", "agency", "search", "mcts"]  # ["garage", "agency", "search", "mcts"]
+    overload_start_depots_option = ["garage", "agency", "search"]  # ["garage", "agency", "search", "mcts"]
     real_world_dirs = ["TEST_WORLD"]  # ["TEST_WORLD", "REAL_WORLD"]
     mcts_world_dirs = ["TEST_WORLD"]  # ["TEST_WORLD", "REAL_WORLD"]
     noise_levels = [0]  # 0, 1, 5, 10
@@ -559,12 +559,9 @@ if __name__ == "__main__":
 
     # Needed data
     # Best stationing results
-    best_solutions_searched = (
-        "/Users/josepaolo-t/Developer/git/mta_simulator_redo/data_analysis/data/best_solutions.parquet"
-    )
+    best_solutions_searched = f"{BASE_DIR}/../data_analysis/data/best_solutions.parquet"
     searched_df = pd.read_parquet(best_solutions_searched)
     searched_df["solution"] = searched_df["solution"].apply(ast.literal_eval)
-
     subsitute_buses_ids = ["41", "42", "43", "44", "45"]
 
     # Base config
@@ -599,7 +596,9 @@ if __name__ == "__main__":
         "overload_start_depots": {"41": "MTA", "42": "MTA", "43": "MTA", "44": "MTA", "45": "MTA"},
     }
 
+    incomplete_data = []
     config_arr = []
+
     for date in date_list:
         for method in method_list:
             for depot in overload_start_depots_option:
@@ -620,7 +619,10 @@ if __name__ == "__main__":
                                     try:
                                         depots = searched_df.loc[searched_df["date"] == date].solution.iloc[0]
                                     except:
-                                        raise Exception(f"Date: {date} has no valid searched depots.")
+                                        # raise Exception(f"Date: {date} has no valid searched depots.")
+                                        logger.error(f"Date: {date} has no valid searched depots.")
+                                        incomplete_data.append(date)
+                                        continue
                             elif method == "mcts":
                                 if depot != "mcts":
                                     continue
@@ -643,6 +645,9 @@ if __name__ == "__main__":
                             _config["noise_level"] = noise
                             _config["mcts_log_name"] = log_name
 
+                            if method != "mcts":
+                                _config["send_mail"] = False
+
                             config_arr.append(_config)
 
     logger.debug(len(config_arr))
@@ -650,11 +655,13 @@ if __name__ == "__main__":
     if run_execute:
         logger.debug(f"Starting execution")
         for config in config_arr:
+            date = config["starting_date_str"]
+            if date in incomplete_data:
+                logger.debug(f"Date: {date} is not run since it is missing search data.")
+                continue
+
             logger.debug(f"Starting: {config['mcts_log_name']}")
-            # logger.debug(f"{config['overload_start_depots']}")
             setup_and_run(config)
-            # print(config)
-            # print("/n")
             logger.debug(f"\tFinished: {config['mcts_log_name']}")
         logger.debug(f"Finished execution")
     else:

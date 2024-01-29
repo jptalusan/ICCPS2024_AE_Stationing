@@ -61,3 +61,17 @@ ARTIFACT_FILES.tar.gz contains the processed data and input files. They are extr
 * code_root/scenarios/common/sampled_travel_times_dict.pkl
 * code_root/scenarios/common/stops_tt_dd_node_dict.pkl
 * code_root/scenarios/common/stops_node_matching_dict.pkl
+
+To get all of this from the base code for use in the evaluation:
+1. Navigate to the root `mta_simulator_redo`
+2. Run:
+```
+    tar -cvzf ARTIFACT_FILES.tar.gz -C . \
+    code_root/scenarios/common/sampled_travel_times_dict.pkl \
+    code_root/scenarios/common/stops_node_matching_dict.pkl \
+    code_root/scenarios/common/stops_tt_dd_node_dict.pkl \
+    code_root/scenarios/REAL_WORLD \
+    code_root/scenarios/TEST_WORLD \
+    data_analysis/data/best_solutions.parquet \
+    code_root/experiments/TEST/prepped_disruptions.parquet
+```
