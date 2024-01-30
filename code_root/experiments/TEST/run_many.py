@@ -559,8 +559,9 @@ if __name__ == "__main__":
     run_plotting = True
     run_execute = True
     # ['20210425', '20201015', '20210624', '20201023', '20200921', '20210401', '20200722', '20200613', '20210211', '20200714', '20210606', '20200522', '20211014', '20201029', '20200307', '20200611', '20210928', '20200822', '20211005', '20201017', '20201123', '20200624', '20200519', '20210302', '20200330', '20210202', '20210829', '20210312', '20201205', '20210826', '20201019', '20210901', '20211007', '20200826', '20210725', '20201013', '20200709']
-    # date_list = [ "20211005", "20210302", "20210826", "20211007", "20210829"] # Cut for time
-    date_list = ["20210425", "20210624", "20210401", "20210211", "20210606"]
+    # date_list = [ "20210312", "20210302", "20210826", "20211007", "20210829"] # Cut for time
+    date_list = ["20210312", "20210302", "20210826", "20210829", "20210425", "20210624", "20210401", "20210211", "20210606", "20210901"]
+    # date_list = ["20210312"]
     method_list = ["baseline", "mcts", "nosub"]
     overload_start_depots_option = ["garage", "agency", "search", "mcts"]
     real_world_dirs = ["REAL_WORLD", "TEST_WORLD"]  # ["TEST_WORLD", "REAL_WORLD"]
@@ -623,6 +624,8 @@ if __name__ == "__main__":
                                 # Only baseline can use these, mcts defaults to mcts depots
                                 # TODO: This requires iter = 100 to be active for baselines
                                 if method != "mcts" and iter_limit != 100:
+                                    continue
+                                if method == "mcts" and iter_limit != 100 and real_world_dir == "REAL_WORLD":
                                     continue
                                 if method == "baseline":
                                     if depot == "agency":
