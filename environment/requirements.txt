@@ -14,3 +14,4 @@ geopandas
 pyarrow
 fastparquet
 python-dotenv==1.0.0
+kaleido

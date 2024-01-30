@@ -21,6 +21,7 @@ from Environment.EnvironmentModelFast import EnvironmentModelFast
 from Environment.Simulator import Simulator
 from src.utils import *
 from src.deconstruct_results import *
+from src.plotting import *
 import copy
 import time
 import logging
@@ -541,8 +542,13 @@ def generate_plots(config_arr):
 
     all_buses_df.to_csv(f"{_dir}/plots/all_buses.csv")
     all_stops_df.to_csv(f"{_dir}/plots/all_stops.csv")
-    pass
-
+    
+    
+    plot_figure_4A()
+    plot_figure_4B()
+    plot_figure_5()
+    plot_figure_7()
+    
 
 if __name__ == "__main__":
     logger = logging.getLogger("runner_logger")
@@ -556,17 +562,17 @@ if __name__ == "__main__":
     logger.addHandler(streamHandler)
     # Params
     # TODO: Make these argparse
-    run_plotting = True
     run_execute = True
+    run_plotting = True
     # ['20210425', '20201015', '20210624', '20201023', '20200921', '20210401', '20200722', '20200613', '20210211', '20200714', '20210606', '20200522', '20211014', '20201029', '20200307', '20200611', '20210928', '20200822', '20211005', '20201017', '20201123', '20200624', '20200519', '20210302', '20200330', '20210202', '20210829', '20210312', '20201205', '20210826', '20201019', '20210901', '20211007', '20200826', '20210725', '20201013', '20200709']
-    # date_list = [ "20210312", "20210302", "20210826", "20211007", "20210829"] # Cut for time
-    date_list = ["20210312", "20210302", "20210826", "20210829", "20210425", "20210624", "20210401", "20210211", "20210606", "20210901"]
-    # date_list = ["20210312"]
+    # date_list = ["20210624", "20210401", "20210211", "20210606", "20210901"] # Cut for time
+    # date_list = ["20210826"] # taking too long
+    date_list = ["20210312", "20210302", "20210425", "20210829"] # done
     method_list = ["baseline", "mcts", "nosub"]
     overload_start_depots_option = ["garage", "agency", "search", "mcts"]
-    real_world_dirs = ["REAL_WORLD", "TEST_WORLD"]  # ["TEST_WORLD", "REAL_WORLD"]
+    real_world_dirs = ["TEST_WORLD"]  # ["TEST_WORLD", "REAL_WORLD"]
     mcts_world_dirs = ["TEST_WORLD"]  # ["TEST_WORLD", "REAL_WORLD"]
-    mcts_iterations = [25, 50, 75, 100]# [25, 50, 75, 100]
+    mcts_iterations = [50, 100]# [25, 50, 75, 100]
     
     noise_levels = [0]  # 0, 1, 5, 10
     parallel = False
@@ -574,7 +580,7 @@ if __name__ == "__main__":
 
     # Needed data
     # Best stationing results
-    best_solutions_searched = f"{BASE_DIR}/../data_analysis/data/best_solutions.parquet"
+    best_solutions_searched = f"{BASE_DIR}/scenarios/common/best_solutions.parquet"
     searched_df = pd.read_parquet(best_solutions_searched)
     searched_df["solution"] = searched_df["solution"].apply(ast.literal_eval)
     subsitute_buses_ids = ["41", "42", "43", "44", "45"]
@@ -589,8 +595,8 @@ if __name__ == "__main__":
         "pool_thread_count": 4,
         "mcts_discount_factor": 0.99997,
         "uct_tradeoff": 1000,
-        "lookahead_horizon_delta_t": 3600,
-        "rollout_horizon_delta_t": 3600,
+        "lookahead_horizon_delta_t": 1800,
+        "rollout_horizon_delta_t": 1800,
         "allowed_computation_time": 15,
         "vehicle_count": "",
         "oracle": False,
@@ -603,7 +609,7 @@ if __name__ == "__main__":
         "mcts_log_name": "test",
         "save_debug_log": True,
         "show_stream_log": False,
-        "decision_interval": 5,
+        "decision_interval": 15,
         "default_vehicle_capacity": 40,
         "overage_threshold": 0.05,
         "passenger_time_to_leave_min": 30,
