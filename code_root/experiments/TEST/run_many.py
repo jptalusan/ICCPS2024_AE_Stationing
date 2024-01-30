@@ -6,6 +6,7 @@ sys.path.append(BASE_DIR)
 # All dates and times should just be datetime!
 from DecisionMaking.Coordinator.DecisionMaker import DecisionMaker
 from DecisionMaking.Coordinator.NearestCoordinator import NearestCoordinator
+from DecisionMaking.Dispatch.DoNothing import DoNothing
 from DecisionMaking.Dispatch.SendNearestDispatchPolicy import SendNearestDispatchPolicy
 from DecisionMaking.Dispatch.HeuristicDispatch import HeuristicDispatch
 from DecisionMaking.DecisionEnvironmentDynamics import DecisionEnvironmentDynamics
@@ -411,6 +412,9 @@ def run_simulation(config):
         )
     elif config["method"].upper() == "BASELINE":
         decision_maker = NearestCoordinator(travel_model=travel_model, dispatch_policy=dispatch_policy, config=config)
+    elif config["method"].upper() == "NOSUB":
+        dispatch_policy = DoNothing(travel_model)  # RandomDispatch(travel_model)
+        decision_maker = NearestCoordinator(travel_model=travel_model, dispatch_policy=dispatch_policy, config=config)
 
     simulator = Simulator(
         starting_event_queue=copy.deepcopy(bus_arrival_events),
@@ -543,18 +547,28 @@ def generate_plots(config_arr):
 if __name__ == "__main__":
     logger = logging.getLogger("runner_logger")
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(logging.StreamHandler())
-
+    
+    logFormatter = logging.Formatter("[%(asctime)s][%(levelname)-.1s] %(message)s", "%m-%d %H:%M:%S")
+    
+    streamHandler = logging.StreamHandler()
+    streamHandler.setFormatter(logFormatter)
+    streamHandler.setLevel(logging.DEBUG)
+    logger.addHandler(streamHandler)
     # Params
+    # TODO: Make these argparse
+    run_plotting = True
     run_execute = True
-    date_list = ["20201023", "20210211", "20200505"]
-    method_list = ["baseline"]  # ["baseline", "mcts"]
-    overload_start_depots_option = ["garage", "agency", "search"]  # ["garage", "agency", "search", "mcts"]
-    real_world_dirs = ["TEST_WORLD"]  # ["TEST_WORLD", "REAL_WORLD"]
+    # ['20210425', '20201015', '20210624', '20201023', '20200921', '20210401', '20200722', '20200613', '20210211', '20200714', '20210606', '20200522', '20211014', '20201029', '20200307', '20200611', '20210928', '20200822', '20211005', '20201017', '20201123', '20200624', '20200519', '20210302', '20200330', '20210202', '20210829', '20210312', '20201205', '20210826', '20201019', '20210901', '20211007', '20200826', '20210725', '20201013', '20200709']
+    # date_list = [ "20211005", "20210302", "20210826", "20211007", "20210829"] # Cut for time
+    date_list = ["20210425", "20210624", "20210401", "20210211", "20210606"]
+    method_list = ["baseline", "mcts", "nosub"]
+    overload_start_depots_option = ["garage", "agency", "search", "mcts"]
+    real_world_dirs = ["REAL_WORLD", "TEST_WORLD"]  # ["TEST_WORLD", "REAL_WORLD"]
     mcts_world_dirs = ["TEST_WORLD"]  # ["TEST_WORLD", "REAL_WORLD"]
+    mcts_iterations = [25, 50, 75, 100]# [25, 50, 75, 100]
+    
     noise_levels = [0]  # 0, 1, 5, 10
     parallel = False
-    run_plotting = True
     send_email = True
 
     # Needed data
@@ -570,12 +584,12 @@ if __name__ == "__main__":
         "real_world_dir": "TEST_WORLD",
         "mcts_world_dir": "TEST_WORLD",
         "noise_level": "",
-        "iter_limit": 1,
-        "pool_thread_count": 1,
+        "iter_limit": 100,
+        "pool_thread_count": 4,
         "mcts_discount_factor": 0.99997,
         "uct_tradeoff": 1000,
-        "lookahead_horizon_delta_t": 900,
-        "rollout_horizon_delta_t": 900,
+        "lookahead_horizon_delta_t": 3600,
+        "rollout_horizon_delta_t": 3600,
         "allowed_computation_time": 15,
         "vehicle_count": "",
         "oracle": False,
@@ -584,7 +598,6 @@ if __name__ == "__main__":
         "send_mail": send_email,
         "reallocation": True,
         "early_end": False,
-        # "early_end": "2021-02-11 12:00:00",
         "scenario": "1B",
         "mcts_log_name": "test",
         "save_debug_log": True,
@@ -597,61 +610,81 @@ if __name__ == "__main__":
     }
 
     incomplete_data = []
-    config_arr = []
+    mcts_config_arr = []
+    base_config_arr = []
 
     for date in date_list:
         for method in method_list:
             for depot in overload_start_depots_option:
                 for real_world_dir in real_world_dirs:
                     for mcts_world_dir in mcts_world_dirs:
-                        for noise in noise_levels:
-                            # Only baseline can use these, mcts defaults to mcts depots
-                            if method == "baseline":
-                                if depot == "agency":
-                                    depots = ["MCC", "MCC", "MCSRVRF", "FAILEWN", "MXITHOMP"]
-                                elif depot == "garage":
-                                    depots = ["MTA", "MTA", "MTA", "MTA", "MTA"]
-                                elif depot == "hub":
-                                    depots = ["MCC", "MCC", "MCC", "MCC", "MCC"]
-                                elif depot == "mcts":
+                        for iter_limit in mcts_iterations:
+                            for noise in noise_levels:
+                                # Only baseline can use these, mcts defaults to mcts depots
+                                # TODO: This requires iter = 100 to be active for baselines
+                                if method != "mcts" and iter_limit != 100:
                                     continue
-                                elif depot == "search":
-                                    try:
-                                        depots = searched_df.loc[searched_df["date"] == date].solution.iloc[0]
-                                    except:
-                                        # raise Exception(f"Date: {date} has no valid searched depots.")
-                                        logger.error(f"Date: {date} has no valid searched depots.")
-                                        incomplete_data.append(date)
+                                if method == "baseline":
+                                    if depot == "agency":
+                                        depots = ["MCC", "MCC", "MCSRVRF", "FAILEWN", "MXITHOMP"]
+                                    elif depot == "garage":
+                                        depots = ["MTA", "MTA", "MTA", "MTA", "MTA"]
+                                    elif depot == "hub":
+                                        depots = ["MCC", "MCC", "MCC", "MCC", "MCC"]
+                                    elif depot == "mcts":
                                         continue
-                            elif method == "mcts":
-                                if depot != "mcts":
-                                    continue
+                                    elif depot == "search":
+                                        try:
+                                            depots = searched_df.loc[searched_df["date"] == date].solution.iloc[0]
+                                        except:
+                                            # raise Exception(f"Date: {date} has no valid searched depots.")
+                                            logger.error(f"Date: {date} has no valid searched depots.")
+                                            incomplete_data.append(date)
+                                            continue
+                                elif method == "mcts":
+                                    if depot != "mcts":
+                                        continue
+                                    else:
+                                        depots = ["MTA", "MTA", "MTA", "MTA", "MTA"]
+                                elif method == "nosub":
+                                    if depot != "garage":
+                                        continue
+                                    else:
+                                        depots = ["MTA", "MTA", "MTA", "MTA", "MTA"]
                                 else:
-                                    depots = ["MTA", "MTA", "MTA", "MTA", "MTA"]
-                            else:
-                                raise Exception(f"Depot: {depot} is not valid a depot option.")
+                                    raise Exception(f"Depot: {depot} is not valid a depot option.")
 
-                            log_name = f"{date}_{method}_{depot}_{real_world_dir.split('_')[0]}_{mcts_world_dir.split('_')[0]}_{noise}"
-                            if noise == 0:
-                                noise = ""
+                                # date, method, depot, real world, mcts world, noise, iter
+                                log_name = f"{date}_{method}_{depot}_{real_world_dir.split('_')[0]}_{mcts_world_dir.split('_')[0]}_{noise}_{iter_limit}"
+                                if noise == 0:
+                                    noise = ""
 
-                            _config = deepcopy(base_config)
-                            _config_depots = dict(zip(subsitute_buses_ids, depots))
-                            _config["overload_start_depots"] = _config_depots
-                            _config["starting_date_str"] = date
-                            _config["real_world_dir"] = real_world_dir
-                            _config["mcts_world_dir"] = mcts_world_dir
-                            _config["method"] = method
-                            _config["noise_level"] = noise
-                            _config["mcts_log_name"] = log_name
+                                _config = deepcopy(base_config)
+                                _config_depots = dict(zip(subsitute_buses_ids, depots))
+                                _config["overload_start_depots"] = _config_depots
+                                _config["starting_date_str"] = date
+                                _config["real_world_dir"] = real_world_dir
+                                _config["mcts_world_dir"] = mcts_world_dir
+                                _config["method"] = method
+                                _config["noise_level"] = noise
+                                _config["iter_limit"] = iter_limit
+                                _config["mcts_log_name"] = log_name
 
-                            if method != "mcts":
-                                _config["send_mail"] = False
+                                if method != "mcts":
+                                    _config["send_mail"] = False
 
-                            config_arr.append(_config)
+                                if method == 'mcts':
+                                    mcts_config_arr.append(_config)
+                                else:
+                                    base_config_arr.append(_config)
 
-    logger.debug(len(config_arr))
+    logger.debug(f"Will run {len(base_config_arr)} base configs.")
+    logger.debug(f"Will run {len(mcts_config_arr)} MCTS configs.")
 
+    config_arr = base_config_arr + mcts_config_arr
+    if not run_execute and not run_plotting:
+        [print(config["mcts_log_name"]) for config in config_arr]
+    
     if run_execute:
         logger.debug(f"Starting execution")
         for config in config_arr:
