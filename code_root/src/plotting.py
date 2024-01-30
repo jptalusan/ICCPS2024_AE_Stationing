@@ -264,6 +264,9 @@ def plot_figure_7():
                     # print(f"Error reading {file_path}: {e}")
                     pass
                 
+    if len(data_arr) == 0:
+        return False
+                
     df = pd.DataFrame(data_arr)
     df["time_per_decision"] = df["duration"] / df["decisions"]
     df = df.groupby("iter").agg({"duration":list, "time_per_decision":list}).reset_index()

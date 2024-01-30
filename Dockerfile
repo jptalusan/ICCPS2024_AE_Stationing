@@ -6,4 +6,4 @@ COPY ./environment/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /usr/src/app/code_root/experiments/TEST
-CMD [ "python", "run_mcts_no_inject.py", "-c", "configs/test" ]
+CMD ["python", "run_many.py"]
